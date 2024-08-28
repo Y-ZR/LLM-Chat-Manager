@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field, constr, conint, UUID4
 from typing import List, Dict, Any
 from enum import Enum
+from uuid import uuid4
 from beanie import Document
 
 
@@ -27,7 +28,7 @@ class Conversation(Document):
     """
     Representation of a series of interactions with a particular LLM
     """
-    id: UUID4 = Field(...,
+    id: UUID4 = Field(default_factory=lambda: uuid4(),
                       description="Unique identifier for the conversation", readOnly=True)
     name: constr(max_length=200) = Field(...,
                                          description="Title of the conversation")
