@@ -1,8 +1,10 @@
 from pydantic import BaseModel, Field, constr, conint, UUID4
 from typing import List, Dict, Any
+from enum import Enum
+from beanie import Document
 
 
-class QueryRoleType(str):
+class QueryRoleType(str, Enum):
     """
     Chat roles for each individual message
     """
@@ -21,7 +23,7 @@ class Prompt(BaseModel):
                                           description="This is the prompt content of the message")
 
 
-class Conversation(BaseModel):
+class Conversation(Document):
     """
     Representation of a series of interactions with a particular LLM
     """
@@ -33,6 +35,9 @@ class Conversation(BaseModel):
                                    default_factory=dict, description="Parameter dictionary for overriding defaults prescribed by the AI Model")
     tokens: conint(ge=0) = Field(...,
                                  description="Total number of tokens consumed in this entire Chat (Format: int32)", readOnly=True)
+
+    class Settings:
+        collection = "conversations"
 
 
 class ConversationFull(Conversation):
