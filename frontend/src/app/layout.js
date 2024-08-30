@@ -3,7 +3,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import '@mantine/core/styles.css';
-import { ColorSchemeScript, MantineProvider } from '@mantine/core';
+import { ColorSchemeScript, MantineProvider, createTheme, useMantineTheme } from '@mantine/core';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useState } from 'react';
 
@@ -15,6 +15,10 @@ const inter = Inter({ subsets: ["latin"] });
 //   description: "LLM Chat Manager",
 // };
 
+const theme = createTheme({
+  
+});
+
 export default function RootLayout({ children }) {
   const [queryClient] = useState(() => new QueryClient());
 
@@ -25,7 +29,7 @@ export default function RootLayout({ children }) {
       </head>
       <body className={inter.className}>
         <QueryClientProvider client={queryClient}>
-          <MantineProvider withGlobalStyles withNormalizeCSS>
+          <MantineProvider withGlobalStyles withNormalizeCSS theme={theme}>
             {children}
           </MantineProvider>
         </QueryClientProvider>
