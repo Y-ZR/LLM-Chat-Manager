@@ -1,13 +1,16 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { AppShell, Title, Group, Card, Grid, TextInput, Button, ScrollArea, Text, Slider, Select } from '@mantine/core';
+import { AppShell, Title, Group, Card, Grid, TextInput, Button, ScrollArea, Text, Slider, Select, ActionIcon } from '@mantine/core';
 import { PiBrainDuotone } from "react-icons/pi";
 import { useParams } from 'next/navigation';
 import { fetchConversationById, sendPrompt } from '../../../utils/api.js';  // Import sendPrompt function
+import { IoMdArrowRoundBack } from "react-icons/io";
+
 
 export default function ConversationPage() {
   const { id } = useParams();
+  const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState([
     { role: 'system', content: 'Hello! How can I assist you today?' },
@@ -21,6 +24,9 @@ export default function ConversationPage() {
       console.log(fetchConversationById(id));
       fetchConversationById(id)
         .then(data => setConversation(data.messages))
+        .catch(error => console.error("Failed to fetch conversation:", error));
+      fetchConversationById(id)
+        .then(data => setName(data.name))
         .catch(error => console.error("Failed to fetch conversation:", error));
     }
   }, [id]);
@@ -65,9 +71,13 @@ export default function ConversationPage() {
       </AppShell.Header>
 
       <AppShell.Main>
-        <Title order={1} style={{ fontSize: 24, fontWeight: 900, marginBottom: '0.5em' }}>
-          Conversation
-        </Title>
+        <Group mb="md">
+          <ActionIcon onClick={() => window.history.back()} variant="transparent" color="black">
+            <IoMdArrowRoundBack size={24} />
+          </ActionIcon>
+          <Title order={1} style={{ fontSize: 24, fontWeight: 800 }}>{name}</Title>
+        </Group>
+        
         <Grid gutter="md">
           <Grid.Col span={2}>
             <Card shadow="xs" padding="md" radius="md" withBorder>
@@ -90,6 +100,7 @@ export default function ConversationPage() {
                 step={0.1}
                 marks={[{ value: 0, label: '0' }, { value: 1, label: '1' }]}
                 mb="lg"
+                color="green"
               />
               <Text size="sm" mt="sm" fw={500} style={{ marginBottom: '0.3em' }}>
                 Stop Sequence
@@ -106,8 +117,9 @@ export default function ConversationPage() {
                 step={0.1}
                 marks={[{ value: 0, label: '0' }, { value: 1, label: '1' }]}
                 mb="xl"
+                color="green"
               />
-              <Button variant="filled" color="blue" fullWidth>
+              <Button variant="filled" color="green" fullWidth>
                 Update
               </Button>
             </Card>
@@ -136,7 +148,7 @@ export default function ConversationPage() {
                   style={{ flex: 1 }}
                   disabled={isLoading}
                 />
-                <Button onClick={handleSendMessage} disabled={isLoading}>
+                <Button onClick={handleSendMessage} disabled={isLoading} color="green">
                   {isLoading ? 'Sending...' : 'Send'}
                 </Button>
               </Group>

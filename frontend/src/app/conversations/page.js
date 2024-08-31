@@ -1,18 +1,19 @@
 "use client";
 
 import { useState } from 'react';
-import { AppShell, Title, Group, ScrollArea, Badge, Text, Card, Space, ActionIcon, Menu, Modal, Button } from '@mantine/core';
+import { AppShell, Title, Group, ScrollArea, Badge, Text, Card, Space, ActionIcon, Menu, Modal, Button, TextInput } from '@mantine/core';
 import { PiBrainDuotone } from "react-icons/pi";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { fetchConversations, deleteConversation } from '../../utils/api.js';
+import { fetchConversations, deleteConversation, createConversation } from '../../utils/api.js';
 import { SlOptions } from "react-icons/sl";
 import { FaRegTrashAlt } from "react-icons/fa";
 
-
 export default function Conversation() {
   const [opened, setOpened] = useState(false);
+  const [newConversationOpened, setNewConversationOpened] = useState(false);
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [newConversationName, setNewConversationName] = useState('');
 
   const queryClient = useQueryClient();
 
@@ -21,11 +22,20 @@ export default function Conversation() {
     queryFn: fetchConversations,
   });
 
-  const mutation = useMutation({
+  const deleteMutation = useMutation({
     mutationFn: deleteConversation,
     onSuccess: () => {
       queryClient.invalidateQueries(['conversations']);
       setOpened(false);
+    },
+  });
+
+  const createMutation = useMutation({
+    mutationFn: createConversation,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['conversations']);
+      setNewConversationOpened(false);
+      setNewConversationName('');
     },
   });
 
@@ -36,10 +46,15 @@ export default function Conversation() {
 
   const handleConfirmDelete = () => {
     if (selectedConversation) {
-      mutation.mutate(selectedConversation);
+      deleteMutation.mutate(selectedConversation);
     }
   };
 
+  const handleCreateConversation = () => {
+    if (newConversationName.trim()) {
+      createMutation.mutate({ name: newConversationName, model: 'gpt-3', params: {} });
+    }
+  };
 
   return (
     <AppShell
@@ -66,7 +81,7 @@ export default function Conversation() {
                 <Card key={conversation.id} withBorder radius="md" p="md" mb="sm">
                   <Group position="apart" mb="xs" gap="xs" align="center">
                     <Group>
-                      <Text weight={500} size="lg" component={Link} href={`/conversations/${conversation._id}`}>
+                      <Text fw={500} size="lg" component={Link} href={`/conversations/${conversation._id}`}>
                         {conversation.name}
                       </Text>
                       <Badge color="green" variant="light">GPT-3</Badge>
@@ -91,8 +106,19 @@ export default function Conversation() {
                 </Card>
               ))
             ) : (
-              !isLoading && !error && <Text>No conversations available.</Text>
+              !isLoading && !error && <Text mb="md">No conversations available.</Text>
             )}
+            <Button
+              variant="light"
+              color="green"
+              size="lg"
+              fullWidth
+              onClick={() => setNewConversationOpened(true)}
+            >
+              <Text align="center" color="green">
+                Add a new conversation
+              </Text>
+            </Button>
           </ScrollArea>
         </Card>
       </AppShell.Main>
@@ -102,6 +128,32 @@ export default function Conversation() {
         <Group position="apart" mt="md">
           <Button variant="default" color="black" onClick={() => setOpened(false)}>Cancel</Button>
           <Button color="red" onClick={handleConfirmDelete}>Confirm</Button>
+        </Group>
+      </Modal>
+
+      <Modal opened={newConversationOpened} onClose={() => setNewConversationOpened(false)} title="Create New Conversation" radius="md" centered>
+        <Text size="sm" fw={500}>
+          Conversation Name
+        </Text>
+        <TextInput
+          placeholder="Conversation Name"
+          value={newConversationName}
+          onChange={(event) => setNewConversationName(event.currentTarget.value)}
+          mb="sm"
+        />
+        <Text size="sm" mt="sm" fw={500}>
+          Model
+        </Text>
+        <TextInput placeholder="GPT-3" mb="sm" disabled />
+        <Text size="sm" mt="sm" fw={500}>
+          Parameters
+        </Text>
+        <TextInput placeholder="Default Parameters" mb="sm" disabled />
+        <Group position="apart" mt="lg">
+          <Button variant="default" color="black" onClick={() => setNewConversationOpened(false)}>Cancel</Button>
+          <Button color="green" onClick={handleCreateConversation} disabled={!newConversationName.trim()}>
+            Create
+          </Button>
         </Group>
       </Modal>
     </AppShell>

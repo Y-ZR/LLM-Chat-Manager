@@ -20,11 +20,11 @@ export default function Home() {
           </Text>
           <Group mt="xl">
             <Link href="/conversations">
-              <Button size="lg" variant="filled" color='black'>
+              <Button size="lg" variant="filled" color='green'>
                   Get Started
               </Button>
             </Link>
-            <Button size="lg" variant="outline" color='black'>
+            <Button size="lg" variant="outline" color='green'>
               Learn More
             </Button>
           </Group>
