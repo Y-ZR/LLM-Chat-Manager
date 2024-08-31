@@ -4,16 +4,17 @@ import { useState, useEffect } from 'react';
 import { AppShell, Title, Group, Card, Grid, TextInput, Button, ScrollArea, Text, Slider, Select } from '@mantine/core';
 import { PiBrainDuotone } from "react-icons/pi";
 import { useParams } from 'next/navigation';
-import { fetchConversationById } from '../../../utils/api.js'; 
+import { fetchConversationById, sendPrompt } from '../../../utils/api.js';  // Import sendPrompt function
 
 export default function ConversationPage() {
   const { id } = useParams();
   const [message, setMessage] = useState('');
   const [conversation, setConversation] = useState([
-    { sender: 'LLM', text: 'Hello! How can I assist you today?' },
+    { role: 'system', content: 'Hello! How can I assist you today?' },
   ]);
   const [temperature, setTemperature] = useState(0.7);
   const [topP, setTopP] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);  // Add loading state
 
   useEffect(() => {
     if (id) {
@@ -24,10 +25,30 @@ export default function ConversationPage() {
     }
   }, [id]);
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
+    console.log("Sending message:", message);
     if (message.trim()) {
-      setConversation([...conversation, { sender: 'User', text: message }]);
-      setMessage('');
+      setConversation([...conversation, { role: 'user', content: message }]);
+      setMessage(''); 
+      setIsLoading(true);
+
+      try {
+        const promptData = {
+          role: "user",
+          content: message,
+        };
+
+        await sendPrompt({ conversationId: id, promptData });
+
+        setConversation(prevConversation => [
+          ...prevConversation,
+          { role: 'system', content: "[Response from LLM.]" }
+        ]);
+      } catch (error) {
+        console.error("Failed to send prompt:", error);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -98,9 +119,9 @@ export default function ConversationPage() {
               <ScrollArea style={{ height: '60vh', marginBottom: '1em', paddingRight: '1em' }}>
                 {conversation.map((msg, index) => (
                   <Text
-                  key={index}
-                  align={msg.role === 'user' ? 'right' : 'left'}
-                  mb="xs"
+                    key={index}
+                    align={msg.role === 'user' ? 'right' : 'left'}
+                    mb="xs"
                   >
                     <strong>{msg.role === 'user' ? 'User' : 'LLM'}:</strong> {msg.content}
                   </Text>
@@ -113,8 +134,11 @@ export default function ConversationPage() {
                   onChange={(event) => setMessage(event.currentTarget.value)}
                   onKeyDown={(event) => event.key === 'Enter' && handleSendMessage()}
                   style={{ flex: 1 }}
+                  disabled={isLoading}
                 />
-                <Button onClick={handleSendMessage}>Send</Button>
+                <Button onClick={handleSendMessage} disabled={isLoading}>
+                  {isLoading ? 'Sending...' : 'Send'}
+                </Button>
               </Group>
             </Card>
           </Grid.Col>
