@@ -66,7 +66,7 @@ export default function Conversation() {
                 <Card key={conversation.id} withBorder radius="md" p="md" mb="sm">
                   <Group position="apart" mb="xs" gap="xs" align="center">
                     <Group>
-                      <Text weight={500} size="lg" component={Link} href={`/conversations/${conversation.id}`} style={{ textDecoration: 'none' }}>
+                      <Text weight={500} size="lg" component={Link} href={`/conversations/${conversation._id}`}>
                         {conversation.name}
                       </Text>
                       <Badge color="green" variant="light">GPT-3</Badge>
